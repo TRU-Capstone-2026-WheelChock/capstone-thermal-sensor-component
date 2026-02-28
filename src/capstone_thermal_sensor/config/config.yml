@@ -1,0 +1,20 @@
+zmq:
+  picture_endpoint: tcp://127.0.0.1:5558
+  center_endpoint: tcp://127.0.0.1:5557
+  picture_topic: ""
+  picture_sub_is_bind: false
+
+visual:
+  fps_limit: 12.0
+  jpeg_quality: 70
+  frame_width: 640
+  frame_height: 480
+
+paths:
+  thermal_shared_dir: /tmp/thermal
+
+thermal_pub:
+  device_id: thermal-001
+  device_name: thermal-camera
+  publish_interval_sec: 0.1
+  presentation_mode: true

@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        USERNAME: dev
+        UID: 1000
+        GID: 1000
+    environment:
+      THERMAL_SHARED_DIR: /dev/shm/thermal
+    volumes:
+      - .:/app:cached
+      - poetry-venv:/app/.venv
+    tmpfs:
+      - /dev/shm/thermal:size=64m
+    command: sleep infinity
+
+volumes:
+  poetry-venv:

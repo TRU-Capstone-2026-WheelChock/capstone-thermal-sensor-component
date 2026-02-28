@@ -1,0 +1,25 @@
+{
+  "name": "capstone-thermal-dev",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/app/.venv/bin/python",
+        "python.formatting.provider": "none",
+        "editor.formatOnSave": true,
+        "python.analysis.extraPaths": ["src"],
+
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "njpwerner.autodocstring",
+        "tamasfe.even-better-toml"
+      ]
+    }
+  },
+  "postCreateCommand": "poetry install",
+  "remoteUser": "dev"
+}
