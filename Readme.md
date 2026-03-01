@@ -30,6 +30,22 @@ This means publisher and FastAPI share the same in-memory path for
 `publisher` runs `python -m capstone_thermal_sensor.main`, so `main.py` is
 executed by Compose.
 
+## Which services to start
+
+For normal runtime, start only:
+
+- `publisher`
+- `visualizer`
+
+Example:
+
+```bash
+docker compose up --build publisher visualizer
+```
+
+`app` is a devcontainer/workspace service and uses `sleep infinity`, so it is
+not required for normal runtime.
+
 ## Config override
 
 You can switch config files at runtime with environment variables:

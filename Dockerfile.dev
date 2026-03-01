@@ -6,7 +6,7 @@ ARG USERNAME=dev
 ARG UID=1000
 ARG GID=1000
 
-RUN apt-get update && apt-get install -y --no-install-recommends git \
+RUN apt-get update && apt-get install -y --no-install-recommends git libgl1 libglib2.0-0 \
  && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir poetry
