@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thermal Monitor</title>
+  <style>
+    :root {
+      --bg-a: #07121d;
+      --bg-b: #142738;
+      --card: #f7f9fc;
+      --ink: #1f2937;
+      --muted: #5f6f81;
+      --ok: #0f9d58;
+      --warn: #d93025;
+      --line: #d6dfeb;
+      --accent: #0b78d1;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1000px 550px at 8% -10%, #2b5d82 0%, transparent 62%),
+        linear-gradient(160deg, var(--bg-a), var(--bg-b));
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .app {
+      width: min(960px, 100%);
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 16px;
+      box-shadow: 0 20px 48px rgba(4, 20, 34, 0.35);
+      overflow: hidden;
+    }
+
+    .head {
+      padding: 16px 20px;
+      background: linear-gradient(120deg, #e8f2ff, #f5fbff);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0.02em;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .body {
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr 260px;
+    }
+
+    .stream-wrap {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+
+    #stream {
+      width: 100%;
+      height: auto;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .stream-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      background: rgba(12, 19, 28, 0.68);
+      color: #d7e8ff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+    }
+
+    .meta {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .meta h2 {
+      margin: 0;
+      font-size: 0.98rem;
+      color: #223243;
+    }
+
+    .item {
+      display: grid;
+      gap: 4px;
+      font-size: 0.9rem;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .value {
+      font-weight: 700;
+      color: #223243;
+      word-break: break-all;
+    }
+
+    .human {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      font-weight: 800;
+      text-align: center;
+      background: #f4f7fa;
+    }
+
+    .human.true {
+      color: var(--warn);
+      background: #ffeceb;
+      border-color: #f7b8b3;
+    }
+
+    .human.false {
+      color: var(--ok);
+      background: #eaf9f0;
+      border-color: #b8e3c7;
+    }
+
+    .foot {
+      padding: 10px 20px 16px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    code {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    @media (max-width: 860px) {
+      .body {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="head">
+      <h1 class="title">Thermal Sensor Live Monitor</h1>
+      <div id="connPill" class="pill">Connecting...</div>
+    </header>
+
+    <section class="body">
+      <div class="stream-wrap">
+        <span id="streamTag" class="stream-tag">/video_feed</span>
+        <img id="stream" src="/video_feed" alt="Thermal stream" />
+      </div>
+
+      <aside class="meta">
+        <h2>Frame Status</h2>
+
+        <div class="item">
+          <div class="label">Human Detection</div>
+          <div id="humanFlag" class="human">Waiting...</div>
+        </div>
+
+        <div class="item">
+          <div class="label">Timestamp (ts)</div>
+          <div id="tsValue" class="value">-</div>
+        </div>
+
+        <div class="item">
+          <div class="label">Last Update</div>
+          <div id="updateValue" class="value">-</div>
+        </div>
+      </aside>
+    </section>
+
+    <footer class="foot">
+      `status` API expected format: <code>{"ts":"...","is_there_human":true|false}</code>
+    </footer>
+  </main>
+
+  <script>
+    const connPill = document.getElementById("connPill");
+    const stream = document.getElementById("stream");
+    const humanFlag = document.getElementById("humanFlag");
+    const tsValue = document.getElementById("tsValue");
+    const updateValue = document.getElementById("updateValue");
+
+    let streamReady = false;
+
+    function setConnectionState(ok) {
+      streamReady = ok;
+      connPill.textContent = ok ? "Stream Connected" : "Reconnecting...";
+      connPill.style.color = ok ? "#0f9d58" : "#d93025";
+    }
+
+    stream.addEventListener("load", () => setConnectionState(true));
+    stream.addEventListener("error", () => setConnectionState(false));
+
+    function setHumanFlag(value) {
+      if (typeof value !== "boolean") {
+        humanFlag.textContent = "Unknown";
+        humanFlag.className = "human";
+        return;
+      }
+
+      humanFlag.textContent = value ? "HUMAN DETECTED" : "NO HUMAN";
+      humanFlag.className = `human ${value}`;
+    }
+
+    async function pollStatus() {
+      try {
+        const res = await fetch("/status", { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        setHumanFlag(data.is_there_human);
+        tsValue.textContent = data.ts ?? "-";
+        updateValue.textContent = new Date().toLocaleTimeString();
+
+        if (!streamReady) setConnectionState(true);
+      } catch (_) {
+        setHumanFlag(undefined);
+        updateValue.textContent = "status fetch failed";
+      }
+    }
+
+    setInterval(pollStatus, 400);
+    pollStatus();
+  </script>
+</body>
+</html>
