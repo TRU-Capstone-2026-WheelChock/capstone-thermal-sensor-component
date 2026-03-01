@@ -1,20 +1,50 @@
+x-dev-base: &dev-base
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+    args:
+      USERNAME: dev
+      UID: 1000
+      GID: 1000
+  environment: &common-env
+    THERMAL_SHARED_DIR: /dev/shm/thermal
+    THERMAL_CONFIG_PATH: ${THERMAL_CONFIG_PATH:-/app/src/capstone_thermal_sensor/config/config.yml}
+    PYTHONPATH: /app/src
+  volumes:
+    - .:/app:cached
+    - poetry-venv:/app/.venv
+    - thermal-shared:/dev/shm/thermal
+
+x-runtime-base: &runtime-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment: *common-env
+  volumes:
+    - thermal-shared:/dev/shm/thermal
+
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-      args:
-        USERNAME: dev
-        UID: 1000
-        GID: 1000
-    environment:
-      THERMAL_SHARED_DIR: /dev/shm/thermal
-    volumes:
-      - .:/app:cached
-      - poetry-venv:/app/.venv
-    tmpfs:
-      - /dev/shm/thermal:size=64m
+    <<: *dev-base
     command: sleep infinity
+
+  publisher:
+    <<: *runtime-base
+    command: python -m capstone_thermal_sensor.main
+
+  visualizer:
+    <<: *runtime-base
+    depends_on:
+      - publisher
+    ports:
+      - "8000:8000"
+    command: uvicorn capstone_thermal_sensor.visualize:app --host 0.0.0.0 --port 8000
 
 volumes:
   poetry-venv:
+  thermal-shared:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=64m
