@@ -1,3 +1,5 @@
 *reference
 
 *.pyc
+__pycache__/
+tests_visualizer/frames/*.png
