@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 import logging
 import time
+from Img_predictor import Img_predictor
 
 import numpy as np
 from msg_handler import get_publisher, ZmqPubOptions
@@ -34,19 +35,22 @@ class ThermalPublisher:
         )
 
         # TODO: Replace with real camera service.
-        self.camera = None
+        self.camera = Img_predictor()
 
     def _read_camera(self) -> tuple[np.ndarray | None, bool]:
         """
         Read one frame from camera.
         Return: (frame_2d_or_1d_thermal_array, is_there_human)
         """
+        picture, raw_data = self.camera.camera()
+        human_dected = self.camera.predict_from_camera()
+             
         if self.camera is None:
             return None, False
         # Example contract for future camera integration:
         # frame, is_there_human = self.camera.get_frame_and_human_state()
         # return frame, bool(is_there_human)
-        return None, False
+        return raw_data, human_dected
 
     def _thermal_publisher(
         self,
