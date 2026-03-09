@@ -1,3 +1,5 @@
 *reference
-
+.venv/
 *.pyc
+__pycache__/
+tests_visualizer/frames/*.png

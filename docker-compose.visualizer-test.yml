@@ -1,0 +1,51 @@
+name: capstone-thermal-visualizer-test
+
+services:
+  visualizer_test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        USERNAME: dev
+        UID: 1000
+        GID: 1000
+    environment:
+      THERMAL_SHARED_DIR: /dev/shm/thermal
+      THERMAL_CONFIG_PATH: /app/src/capstone_thermal_sensor/config/config.yml
+      PYTHONPATH: /app/src
+    volumes:
+      - .:/app:cached
+      - poetry-venv:/app/.venv
+      - thermal-shared:/dev/shm/thermal
+    ports:
+      - "8001:8000"
+    command: poetry run uvicorn capstone_thermal_sensor.visualize:app --host 0.0.0.0 --port 8000
+
+  frame_player:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        USERNAME: dev
+        UID: 1000
+        GID: 1000
+    environment:
+      THERMAL_SHARED_DIR: /dev/shm/thermal
+      THERMAL_CONFIG_PATH: /app/src/capstone_thermal_sensor/config/config.yml
+      PYTHONPATH: /app/src
+    volumes:
+      - .:/app:cached
+      - poetry-venv:/app/.venv
+      - thermal-shared:/dev/shm/thermal
+    depends_on:
+      - visualizer_test
+    command: poetry run python /app/tests_visualizer/play_png_sequence.py --input-dir /app/tests_visualizer/frames --shared-dir /dev/shm/thermal --loop
+
+volumes:
+  poetry-venv:
+  thermal-shared:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=64m

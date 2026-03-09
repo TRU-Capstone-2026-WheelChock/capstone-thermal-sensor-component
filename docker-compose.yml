@@ -1,3 +1,5 @@
+name: capstone-thermal-dev
+
 x-dev-base: &dev-base
   build:
     context: .
