@@ -10,6 +10,7 @@ import adafruit_mlx90640
 import logging
 import os
 from tensorflow import keras
+from pathlib import Path
 
 logger = logging.getLogger("Img_predictor")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -17,7 +18,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 class Img_predictor:
     def __init__(self):
         keras.backend.clear_session()
-        self.model = keras.models.load_model('best_thermal_human_V1.keras')
+        current_dir = Path(__file__).parent
+        self.model = keras.models.load_model(f'{current_dir}/best_thermal_human_V1.keras')
         # self.processer = pi.load(open('Th_image_processer_V1.pkl', 'rb'))
         # self.img_path = os.path.join('dataset', 'test_img.csv')
         self.img_height = 24
@@ -25,6 +27,7 @@ class Img_predictor:
         self.temp_min = -40
         self.temp_max = 40
         self.X_processed = None
+        
 
         logger.info("Initializing Thermal Camera...")
         # try:

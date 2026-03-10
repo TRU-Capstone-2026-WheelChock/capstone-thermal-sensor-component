@@ -8,18 +8,18 @@ from typing import Generator
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
-
+from capstone_thermal_sensor.thermal_camera_pub import ThermalPublisher
 from capstone_thermal_sensor.config import get_shared_dir
 
 SHARED_DIR = Path(get_shared_dir())
 LATEST_JPG = SHARED_DIR / "latest.jpg"
 LATEST_JSON = SHARED_DIR / "latest.json"
 
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 INDEX_HTML = REPO_ROOT / "templates" / "index.html"
 
 app = FastAPI(title="Thermal Visualizer")
-
 
 def _default_status() -> dict[str, object]:
     return {

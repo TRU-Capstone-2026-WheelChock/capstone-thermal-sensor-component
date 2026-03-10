@@ -32,6 +32,16 @@ services:
 
   publisher:
     <<: *runtime-base
+    privileged: true
+    group_add:
+      - "994"
+    devices:
+      - /dev/i2c-1:/dev/i2c-1
+      - /dev/gpiomem:/dev/gpiomem
+      - /dev/mem:/dev/mem
+    volumes:
+      - thermal-shared:/dev/shm/thermal
+      - /proc/device-tree:/proc/device-tree:ro
     command: python -m capstone_thermal_sensor.main
 
   visualizer:

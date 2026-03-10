@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 import logging
 import time
-from Img_predictor import Img_predictor
 
 import numpy as np
 from msg_handler import get_publisher, ZmqPubOptions
@@ -18,10 +17,11 @@ from capstone_thermal_sensor.config import (
     is_presentation_mode,
 )
 from capstone_thermal_sensor.frame_writer import FrameFileWriter, WriterConfig
-
+from pathlib import Path
 
 class ThermalPublisher:
     def __init__(self, logger: logging.Logger | None = None):
+        from capstone_thermal_sensor.Img_predictor import Img_predictor
         self.device_id = get_device_id()
         self.device_name = get_device_name()
         self.logger = logger or logging.getLogger("ThermalPublisher")
@@ -33,6 +33,9 @@ class ThermalPublisher:
             if self.is_presentation_mode
             else None
         )
+        self.picture = None
+        self.is_there_human = False
+        self.frame = None
 
         # TODO: Replace with real camera service.
         self.camera = Img_predictor()
@@ -46,11 +49,11 @@ class ThermalPublisher:
         human_dected = self.camera.predict_from_camera()
              
         if self.camera is None:
-            return None, False
+            return None, False, None
         # Example contract for future camera integration:
         # frame, is_there_human = self.camera.get_frame_and_human_state()
         # return frame, bool(is_there_human)
-        return raw_data, human_dected
+        return raw_data, human_dected, picture
 
     def _thermal_publisher(
         self,
@@ -64,7 +67,7 @@ class ThermalPublisher:
             # DO CAMERA CONTROL HERE
             # REMEMBER this is in the loop
             #####################################################
-            frame, is_there_human = self._read_camera()
+            self.frame, self.is_there_human, self.picture = self._read_camera()
 
             connect_center.send(
                 mschema.SensorMessage(
@@ -73,23 +76,23 @@ class ThermalPublisher:
                     timestamp=now,
                     data_type=mschema.GenericMessageDatatype.SENSOR,
                     payload=mschema.SensorPayload(
-                        isThereHuman=is_there_human,
+                        isThereHuman=self.is_there_human,
                         sensor_status="OK",
                         sensor_status_code=200,
                     ),
                 )
             )
 
-            if is_presentation_mode and self.presentation_writer and frame is not None:
+            if is_presentation_mode and self.presentation_writer and self.frame is not None:
                 self.presentation_writer.write(
-                    frame=frame,
+                    frame=self.frame,
                     ts=now,
-                    is_there_human=is_there_human,
+                    is_there_human=self.is_there_human,
                 )
 
             if self.loop_sleep_sec > 0:
                 time.sleep(self.loop_sleep_sec)
-
+            
     def run(self):
         pub_option = ZmqPubOptions(
             endpoint=get_endpoint("center")
