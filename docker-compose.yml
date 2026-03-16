@@ -33,6 +33,7 @@ services:
 
   publisher:
     <<: *runtime-base
+    profiles: ["thermal-real"]
     privileged: true
     group_add:
       - "994"
