@@ -26,20 +26,33 @@ x-runtime-base: &runtime-base
     - thermal-shared:/dev/shm/thermal
 
 services:
-  app:
+  thermal-dev:
     <<: *dev-base
+    profiles: ["dev"]
     command: sleep infinity
 
   publisher:
     <<: *runtime-base
+    privileged: true
+    group_add:
+      - "994"
+    devices:
+      - /dev/i2c-1:/dev/i2c-1
+      - /dev/gpiomem:/dev/gpiomem
+      - /dev/mem:/dev/mem
+    volumes:
+      - thermal-shared:/dev/shm/thermal
+      - /proc/device-tree:/proc/device-tree:ro
     command: python -m capstone_thermal_sensor.main
+    
 
   visualizer:
     <<: *runtime-base
+    profiles: ["visual"]
     depends_on:
       - publisher
     ports:
-      - "8000:8000"
+      - "${THERMAL_VISUALIZER_PORT:-8000}:8000"
     command: uvicorn capstone_thermal_sensor.visualize:app --host 0.0.0.0 --port 8000
 
 volumes:
