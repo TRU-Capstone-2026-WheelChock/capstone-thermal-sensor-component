@@ -1,6 +1,6 @@
 {
   "name": "capstone-thermal-dev",
-  "dockerComposeFile": "../docker-compose.yml",
+  "dockerComposeFile": "../docker-compose.devcontainer.yml",
   "service": "app",
   "workspaceFolder": "/app",
   "customizations": {

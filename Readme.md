@@ -52,12 +52,17 @@ The files are ephemeral (deleted when the container restarts), which is fine for
 
 `docker-compose.yml` is configured with:
 
-- `Dockerfile.dev` for devcontainer service (`app`)
 - `Dockerfile` for runtime services (`publisher` and `visualizer`)
-- Compose project name `capstone-thermal-dev`
+- Compose project name `capstone-thermal-runtime`
 - `THERMAL_SHARED_DIR=/dev/shm/thermal` on both `publisher` and `visualizer`
 - a shared named volume `thermal-shared` mounted at `/dev/shm/thermal`
 - `thermal-shared` backed by `tmpfs` (`size=64m`)
+
+`docker-compose.devcontainer.yml` is configured with:
+
+- `Dockerfile.dev` for devcontainer service (`app`)
+- Compose project name `capstone-thermal-dev`
+- the same shared tmpfs layout so tests and local tooling can use `/dev/shm/thermal`
 
 This means publisher and FastAPI share the same in-memory path for
 `latest.jpg` and `latest.json`.
@@ -78,8 +83,8 @@ Example:
 docker compose up --build publisher visualizer
 ```
 
-`app` is a devcontainer/workspace service and uses `sleep infinity`, so it is
-not required for normal runtime.
+`app` is defined in `docker-compose.devcontainer.yml` and uses `sleep infinity`,
+so it is not required for normal runtime.
 
 ## Config override
 
@@ -135,6 +140,8 @@ Container and environment:
 
 - `docker-compose.yml`
   - Normal runtime services (`publisher`, `visualizer`) and shared tmpfs volume.
+- `docker-compose.devcontainer.yml`
+  - Devcontainer/workspace service (`app`) using `Dockerfile.dev`.
 - `docker-compose.visualizer-test.yml`
   - Visualizer test stack (`visualizer_test`, `frame_player`).
 - `Dockerfile`
