@@ -87,7 +87,7 @@ class Img_predictor:
                 logger.warning("Invalid temperature data dectected (NaN or Inf)")
                 return None, None
             
-            Human_temp_threshold = 34.0
+            Human_temp_threshold = 32.0
             Target_BG_temp = 20.0
             
             bg_mask = data_array < Human_temp_threshold
