@@ -94,7 +94,7 @@ class Img_predictor:
             if np.any(bg_mask):
                 current_bg_temp = np.mean(data_array[bg_mask])
                 offset = current_bg_temp - Target_BG_temp
-                offset = np.clip(offset, 0, 15)
+                offset = np.clip(offset, 0, 10)
                 data_array[bg_mask] = data_array[bg_mask] - offset
                 data_array[bg_mask] = np.clip(data_array[bg_mask], -40, 40)
                 logger.debug(f'Background correction: current mean={current_bg_temp:.1f}℃,'
