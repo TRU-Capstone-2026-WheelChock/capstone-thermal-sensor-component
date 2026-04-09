@@ -87,14 +87,15 @@ class Img_predictor:
                 logger.warning("Invalid temperature data dectected (NaN or Inf)")
                 return None, None
             
-            Human_temp_threshold = 37.5
-            Target_BG_temp = 22.0
+            HUMAN_T_MIN = 37.0
+            HUMAN_T_MAX = 38.0
+            Target_BG_temp = 22.5
             
-            bg_mask = data_array < Human_temp_threshold
+            bg_mask = (data_array < HUMAN_T_MIN) | (data_array > HUMAN_T_MAX)
             if np.any(bg_mask):
                 current_bg_temp = np.mean(data_array[bg_mask])
                 offset = current_bg_temp - Target_BG_temp
-                offset = np.clip(offset, 0, 6)
+                offset = np.clip(offset, 0, 2)
                 data_array[bg_mask] = data_array[bg_mask] - offset
                 data_array[bg_mask] = np.clip(data_array[bg_mask], -40, 40)
                 logger.debug(f'Background correction: current mean={current_bg_temp:.1f}℃,'
